@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: proliga-ingress
+  namespace: proliga
+  annotations:
+    kubernetes.io/ingress.class: traefik
+spec:
+  rules:
+    - host: proliga.local   # fake DNS
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: proliga-frontend
+                port:
+                  number: 80

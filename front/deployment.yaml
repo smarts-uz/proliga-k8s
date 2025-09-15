@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: proliga-frontend
+  namespace: proliga
+spec:
+  replicas: 3   # best practice: multiple replicas
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: proliga-frontend
+  template:
+    metadata:
+      labels:
+        app: proliga-frontend
+    spec:
+      containers:
+        - name: frontend
+          image: ramz001/proliga:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          volumeMounts:
+            - name: static-files
+              mountPath: /app/static
+      volumes:
+        - name: static-files
+          persistentVolumeClaim:
+            claimName: proliga-static-pvc
