@@ -1,0 +1,14 @@
+# k8s/08-pooler-nodeport.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: proliga-pooler-rw-nodeport
+  namespace: proliga-db
+spec:
+  type: NodePort
+  selector:
+    cnpg.io/poolerName: proliga-db-pooler-rw
+  ports:
+    - port: 5432
+      targetPort: 5432
+      nodePort: 30032

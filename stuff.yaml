@@ -1,0 +1,401 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    cnpg.io/poolerSpecHash: c69cc8684
+    deployment.kubernetes.io/revision: "1"
+  creationTimestamp: 2025-09-17T09:17:38Z
+  generation: 2
+  labels:
+    cnpg.io/cluster: cnpg-cluster
+    cnpg.io/podRole: pooler
+    cnpg.io/poolerName: cnpg-cluster-rw-pooler
+  name: cnpg-cluster-rw-pooler
+  namespace: postgres
+  ownerReferences:
+    - apiVersion: postgresql.cnpg.io/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Pooler
+      name: cnpg-cluster-rw-pooler
+      uid: 4cc8aa09-54b9-43dd-8cb0-00878a11e24e
+  uid: 84bb2740-6d69-455b-834b-d916ec3a5d87
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 2
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      cnpg.io/poolerName: cnpg-cluster-rw-pooler
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        cnpg.io/cluster: cnpg-cluster
+        cnpg.io/podRole: pooler
+        cnpg.io/poolerName: cnpg-cluster-rw-pooler
+    spec:
+      containers:
+        - command:
+            - /controller/manager
+            - pgbouncer
+            - run
+          env:
+            - name: NAMESPACE
+              value: postgres
+            - name: POOLER_NAME
+              value: cnpg-cluster-rw-pooler
+            - name: PGUSER
+              value: pgbouncer
+            - name: PGDATABASE
+              value: pgbouncer
+            - name: PGHOST
+              value: /controller/run
+            - name: PSQL_HISTORY
+              value: /controller/tmp/.psql_history
+          image: ghcr.io/cloudnative-pg/pgbouncer:1.24.1
+          imagePullPolicy: IfNotPresent
+          name: pgbouncer
+          ports:
+            - containerPort: 5432
+              name: pgbouncer
+              protocol: TCP
+            - containerPort: 9127
+              name: metrics
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            periodSeconds: 10
+            successThreshold: 1
+            tcpSocket:
+              port: 5432
+            timeoutSeconds: 5
+          resources: {}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            privileged: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+            - mountPath: /controller
+              name: scratch-data
+      dnsPolicy: ClusterFirst
+      initContainers:
+        - command:
+            - /manager
+            - bootstrap
+            - /controller/manager
+          image: ghcr.io/cloudnative-pg/cloudnative-pg:1.27.0
+          imagePullPolicy: IfNotPresent
+          name: bootstrap-controller
+          resources: {}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            privileged: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+            - mountPath: /controller
+              name: scratch-data
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext:
+        fsGroup: 996
+        runAsGroup: 996
+        runAsNonRoot: true
+        runAsUser: 998
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccount: cnpg-cluster-rw-pooler
+      serviceAccountName: cnpg-cluster-rw-pooler
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - name: ca
+          secret:
+            defaultMode: 420
+            secretName: cnpg-cluster-ca
+        - name: server-tls
+          secret:
+            defaultMode: 420
+            secretName: cnpg-cluster-server
+        - emptyDir: {}
+          name: scratch-data
+status:
+  availableReplicas: 2
+  conditions:
+    - lastTransitionTime: 2025-09-17T09:17:40Z
+      lastUpdateTime: 2025-09-17T09:17:40Z
+      message: Deployment has minimum availability.
+      reason: MinimumReplicasAvailable
+      status: "True"
+      type: Available
+    - lastTransitionTime: 2025-09-17T09:17:38Z
+      lastUpdateTime: 2025-09-17T09:17:40Z
+      message: ReplicaSet "cnpg-cluster-rw-pooler-96948f4b7" has successfully
+        progressed.
+      reason: NewReplicaSetAvailable
+      status: "True"
+      type: Progressing
+  observedGeneration: 2
+  readyReplicas: 2
+  replicas: 2
+  updatedReplicas: 2
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: >
+      {"apiVersion":"v1","kind":"Service","metadata":{"annotations":{},"labels":{"io.portainer.kubernetes.application.kind":"content","io.portainer.kubernetes.application.name":"","io.portainer.kubernetes.application.owner":"admin","io.portainer.kubernetes.application.owner.id":"1","io.portainer.kubernetes.application.stack":"","io.portainer.kubernetes.application.stackid":"14"},"name":"cluster-example-external","namespace":"postgres"},"spec":{"ports":[{"port":5432,"targetPort":5432}],"selector":{"cnpg.io/cluster":"cnpg-cluster","role":"primary"},"type":"LoadBalancer"}}
+  creationTimestamp: 2025-09-17T05:28:11Z
+  finalizers:
+    - service.kubernetes.io/load-balancer-cleanup
+  labels:
+    io.portainer.kubernetes.application.kind: content
+    io.portainer.kubernetes.application.name: ""
+    io.portainer.kubernetes.application.owner: admin
+    io.portainer.kubernetes.application.owner.id: "1"
+    io.portainer.kubernetes.application.stack: ""
+    io.portainer.kubernetes.application.stackid: "14"
+  name: cluster-example-external
+  namespace: postgres
+  uid: b18c7e42-d4bb-4db7-b552-2d6bd20ed06f
+spec:
+  allocateLoadBalancerNodePorts: true
+  clusterIP: 10.43.126.87
+  clusterIPs:
+    - 10.43.126.87
+  externalTrafficPolicy: Cluster
+  internalTrafficPolicy: Cluster
+  ipFamilies:
+    - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+    - nodePort: 31026
+      port: 5432
+      protocol: TCP
+      targetPort: 5432
+  selector:
+    cnpg.io/cluster: cnpg-cluster
+    role: primary
+  sessionAffinity: None
+  type: LoadBalancer
+status:
+  loadBalancer:
+    ingress:
+      - ip: 192.168.3.127
+        ipMode: VIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    cnpg.io/operatorVersion: 1.27.0
+  creationTimestamp: 2025-09-17T05:00:27Z
+  labels:
+    cnpg.io/cluster: cnpg-cluster
+  name: cnpg-cluster-r
+  namespace: postgres
+  ownerReferences:
+    - apiVersion: postgresql.cnpg.io/v1
+      controller: true
+      kind: Cluster
+      name: cnpg-cluster
+      uid: 99fc78fb-cc85-49fe-a2e1-81c9efcf5211
+  uid: ac3996d5-a44a-42cb-ae34-c239ccf5e33c
+spec:
+  clusterIP: 10.43.27.252
+  clusterIPs:
+    - 10.43.27.252
+  internalTrafficPolicy: Cluster
+  ipFamilies:
+    - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+    - name: postgres
+      port: 5432
+      protocol: TCP
+      targetPort: 5432
+  selector:
+    cnpg.io/cluster: cnpg-cluster
+    cnpg.io/podRole: instance
+  sessionAffinity: None
+  type: ClusterIP
+status:
+  loadBalancer: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    cnpg.io/operatorVersion: 1.27.0
+  creationTimestamp: 2025-09-17T05:00:27Z
+  labels:
+    cnpg.io/cluster: cnpg-cluster
+  name: cnpg-cluster-ro
+  namespace: postgres
+  ownerReferences:
+    - apiVersion: postgresql.cnpg.io/v1
+      controller: true
+      kind: Cluster
+      name: cnpg-cluster
+      uid: 99fc78fb-cc85-49fe-a2e1-81c9efcf5211
+  uid: ad6ac596-90f7-4c91-95c3-2e19172baf00
+spec:
+  clusterIP: 10.43.107.18
+  clusterIPs:
+    - 10.43.107.18
+  internalTrafficPolicy: Cluster
+  ipFamilies:
+    - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+    - name: postgres
+      port: 5432
+      protocol: TCP
+      targetPort: 5432
+  selector:
+    cnpg.io/cluster: cnpg-cluster
+    cnpg.io/instanceRole: replica
+  sessionAffinity: None
+  type: ClusterIP
+status:
+  loadBalancer: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    cnpg.io/operatorVersion: 1.27.0
+  creationTimestamp: 2025-09-17T05:00:27Z
+  labels:
+    cnpg.io/cluster: cnpg-cluster
+  name: cnpg-cluster-rw
+  namespace: postgres
+  ownerReferences:
+    - apiVersion: postgresql.cnpg.io/v1
+      controller: true
+      kind: Cluster
+      name: cnpg-cluster
+      uid: 99fc78fb-cc85-49fe-a2e1-81c9efcf5211
+  uid: 5806a832-a593-469c-ac11-e72195b8ca23
+spec:
+  clusterIP: 10.43.193.83
+  clusterIPs:
+    - 10.43.193.83
+  internalTrafficPolicy: Cluster
+  ipFamilies:
+    - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+    - name: postgres
+      port: 5432
+      protocol: TCP
+      targetPort: 5432
+  selector:
+    cnpg.io/cluster: cnpg-cluster
+    cnpg.io/instanceRole: primary
+  sessionAffinity: None
+  type: ClusterIP
+status:
+  loadBalancer: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    cnpg.io/poolerSpecHash: 5bf874cdd7
+  creationTimestamp: 2025-09-17T09:17:38Z
+  labels:
+    cnpg.io/cluster: cnpg-cluster
+    cnpg.io/podRole: pooler
+    cnpg.io/poolerName: cnpg-cluster-rw-pooler
+  name: cnpg-cluster-rw-pooler
+  namespace: postgres
+  ownerReferences:
+    - apiVersion: postgresql.cnpg.io/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Pooler
+      name: cnpg-cluster-rw-pooler
+      uid: 4cc8aa09-54b9-43dd-8cb0-00878a11e24e
+  uid: 86273364-a33c-42c4-9d9b-2482292032e7
+spec:
+  clusterIP: 10.43.117.220
+  clusterIPs:
+    - 10.43.117.220
+  internalTrafficPolicy: Cluster
+  ipFamilies:
+    - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+    - name: pgbouncer
+      port: 5432
+      protocol: TCP
+      targetPort: pgbouncer
+  selector:
+    cnpg.io/poolerName: cnpg-cluster-rw-pooler
+  sessionAffinity: None
+  type: ClusterIP
+status:
+  loadBalancer: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: >
+      {"apiVersion":"v1","kind":"Service","metadata":{"annotations":{},"labels":{"io.portainer.kubernetes.application.kind":"content","io.portainer.kubernetes.application.name":"","io.portainer.kubernetes.application.owner":"admin","io.portainer.kubernetes.application.owner.id":"1","io.portainer.kubernetes.application.stack":"","io.portainer.kubernetes.application.stackid":"30"},"name":"cnpg-pooler-external","namespace":"postgres"},"spec":{"ports":[{"port":5432,"targetPort":5432}],"selector":{"cnpg.io/poolerName":"cnpg-cluster-rw-pooler"},"type":"LoadBalancer"}}
+  creationTimestamp: 2025-09-17T09:17:37Z
+  finalizers:
+    - service.kubernetes.io/load-balancer-cleanup
+  labels:
+    io.portainer.kubernetes.application.kind: content
+    io.portainer.kubernetes.application.name: ""
+    io.portainer.kubernetes.application.owner: admin
+    io.portainer.kubernetes.application.owner.id: "1"
+    io.portainer.kubernetes.application.stack: ""
+    io.portainer.kubernetes.application.stackid: "30"
+  name: cnpg-pooler-external
+  namespace: postgres
+  uid: 3e0acf63-e073-4543-92c8-cfdc1c115cbc
+spec:
+  allocateLoadBalancerNodePorts: true
+  clusterIP: 10.43.181.144
+  clusterIPs:
+    - 10.43.181.144
+  externalTrafficPolicy: Cluster
+  internalTrafficPolicy: Cluster
+  ipFamilies:
+    - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+    - nodePort: 31305
+      port: 5432
+      protocol: TCP
+      targetPort: 5432
+  selector:
+    cnpg.io/poolerName: cnpg-cluster-rw-pooler
+  sessionAffinity: None
+  type: LoadBalancer
+status:
+  loadBalancer: {}

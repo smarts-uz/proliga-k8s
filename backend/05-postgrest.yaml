@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgrest
+  namespace: proliga-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgrest
+  template:
+    metadata:
+      labels:
+        app: postgrest
+    spec:
+      containers:
+        - name: postgrest
+          image: yourrepo/pgrest:latest
+          env:
+            - name: ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: proliga-secrets
+                  key: ROOT_PASSWORD
+            - name: PG_USER
+              valueFrom:
+                secretKeyRef:
+                  name: proliga-secrets
+                  key: PG_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: proliga-secrets
+                  key: DB_PASSWORD
+            - name: PG_DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: proliga-secrets
+                  key: PG_DB_NAME
+            - name: PGRST_JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: proliga-secrets
+                  key: PGRST_JWT_SECRET
+            - name: PORT_HTTP
+              valueFrom:
+                configMapKeyRef:
+                  name: proliga-config
+                  key: PORT_HTTP
+            - name: PORT_HTTPS
+              valueFrom:
+                configMapKeyRef:
+                  name: proliga-config
+                  key: PORT_HTTPS
+          ports:
+            - containerPort: 3000

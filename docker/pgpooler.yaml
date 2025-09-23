@@ -1,0 +1,33 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Pooler
+metadata:
+  name: cnpg-cluster-rw-pooler # ⚠️ must be different from cluster name
+  namespace: postgres
+spec:
+  cluster:
+    name: cnpg-cluster # must match your cluster name
+  instances: 3 # number of PgBouncer pods (HA)
+  type: rw # pooler type (rw = primary service, ro = replicas)
+
+  pgbouncer:
+    poolMode: transaction # can be session, transaction, or statement
+    parameters:
+      max_client_conn: "500" # max client connections
+      default_pool_size: "20" # pooled connections per user/db
+
+  template:
+    spec:
+      containers: []
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cnpg-pooler-external
+  namespace: postgres
+spec:
+  type: LoadBalancer
+  selector:
+    cnpg.io/poolerName: cnpg-cluster-rw-pooler
+  ports:
+    - port: 5432
+      targetPort: 5432

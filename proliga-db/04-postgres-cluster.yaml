@@ -1,0 +1,15 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: proliga-db
+  namespace: proliga-db
+spec:
+  instances: 3
+  storage:
+    size: 10Gi
+
+  postgresql:
+    parameters:
+      max_connections: "500"
+      work_mem: "16MB"
+      shared_buffers: "512MB"

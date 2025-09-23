@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: postgrest-ingress
+  namespace: proliga-db
+  annotations:
+    kubernetes.io/ingress.class: traefik
+spec:
+  rules:
+    - host: postgrest.proliga.local   # Update hosts file on workstation
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: postgrest
+                port:
+                  number: 3000

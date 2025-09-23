@@ -1,0 +1,31 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: cnpg-cluster
+spec:
+  imageName: ramz001/cnpg:17
+  instances: 3
+
+  storage:
+    size: 2Gi
+
+  postgresql:
+    shared_preload_libraries:
+      - pg_stat_statements
+      - pg_cron
+      - pgaudit
+      - http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cluster-example-external
+  namespace: postgres
+spec:
+  type: LoadBalancer
+  selector:
+    cnpg.io/cluster: cnpg-cluster
+    role: primary
+  ports:
+    - port: 5432
+      targetPort: 5432

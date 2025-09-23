@@ -1,0 +1,11 @@
+curl -sfL https://get.k3s.io | sh -
+
+curl -sfL https://get.k3s.io | K3S_URL=http://192.168.3.127 K3S_TOKEN=K1059abb019ffe1f2d88d99c40038352a27fd31fdabf7e471c67df2320c19cfd6ee::server:1034c1e7bb0826ab935d43c7fe4dd0d3 sh -
+
+sudo cat /var/lib/rancher/k3s/server/token
+
+K1059abb019ffe1f2d88d99c40038352a27fd31fdabf7e471c67df2320c19cfd6ee::server:1034c1e7bb0826ab935d43c7fe4dd0d3
+
+// on master
+sudo ufw allow 6443/tcp
+sudo ss -lntp | grep 6443 // to check

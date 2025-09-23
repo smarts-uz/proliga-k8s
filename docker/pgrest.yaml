@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgrest
+  namespace: postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgrest
+  template:
+    metadata:
+      labels:
+        app: postgrest
+    spec:
+      containers:
+      - name: postgrest
+        image: postgrest/postgrest:latest
+        env:
+        - name: PG_USER
+          valueFrom:
+            secretKeyRef:
+              name: cnpg-cluster-app
+              key: user
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: cnpg-cluster-app
+              key: password
+        - name: PGRST_DB_URI
+          value: "postgres://$(PG_USER):$(DB_PASSWORD)@192.168.3.127:31348/postgres"
+        - name: PGRST_DB_ANON_ROLE
+          value: web_anon
+        - name: PGRST_JWT_SECRET
+          value: "yW4wJ6a9X8jK8bF1rC3x8uWq7tNp4QeUdLxvB9zVz2k="
+        - name: PGRST_DB_CHANNEL_ENABLED
+          value: "true"
+        - name: PGRST_DB_CHANNEL
+          value: "pgrst"
+        - name: TZ
+          value: Asia/Tashkent
+        ports:
+        - containerPort: 3000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgrest
+  namespace: postgres
+spec:
+  type: LoadBalancer
+  selector:
+    app: postgrest
+  ports:
+    - port: 3000
+      targetPort: 3000
+
