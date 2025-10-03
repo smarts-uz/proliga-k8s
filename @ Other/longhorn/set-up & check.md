@@ -20,6 +20,6 @@ sudo install longhornctl-linux-amd64 /usr/local/bin/longhornctl
 Verify installation:
 longhornctl version
 
- export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
 sudo chmod +r /etc/rancher/k3s/k3s.yaml
 longhornctl check preflight
