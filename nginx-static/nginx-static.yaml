@@ -1,0 +1,46 @@
+# nginx-static.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-static
+  namespace: test-nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx-static
+  template:
+    metadata:
+      labels:
+        app: nginx-static
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:latest
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: static-assets
+              mountPath: /usr/share/nginx/html
+            - name: nginx-config
+              mountPath: /etc/nginx/conf.d
+      volumes:
+        - name: static-assets
+          persistentVolumeClaim:
+            claimName: static-assets-pvc
+        - name: nginx-config
+          configMap:
+            name: nginx-static-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-static-service
+  namespace: test-nginx
+spec:
+  selector:
+    app: nginx-static
+  ports:
+    - port: 80
+      targetPort: 80
+  type: ClusterIP

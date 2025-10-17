@@ -1,4 +1,4 @@
-kubectl exec -it cluster-example-1 -n cnpg-system -- bash
+kubectl exec -it ha-db-1 -n cnpg-system -- bash
 
 ==================================================================================
 

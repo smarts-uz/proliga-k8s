@@ -1,0 +1,20 @@
+# ingress-static.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: static-assets-ingress
+  namespace: test-nginx
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+spec:
+  rules:
+    - host: komol.uz
+      http:
+        paths:
+          - path: /static/
+            pathType: Prefix
+            backend:
+              service:
+                name: nginx-static-service
+                port:
+                  number: 80

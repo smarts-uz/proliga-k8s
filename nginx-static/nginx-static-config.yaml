@@ -1,0 +1,24 @@
+# nginx-static-config.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-static-config
+  namespace: default
+data:
+  default.conf: |
+    server {
+        listen 80;
+        server_name _;
+
+        location /static/ {
+            alias /usr/share/nginx/html/;
+            autoindex on;
+            expires 30d;
+            add_header Cache-Control "public, max-age=2592000";
+        }
+
+        # Optional: fallback for others
+        location / {
+            return 404;
+        }
+    }
