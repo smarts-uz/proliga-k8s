@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: komol-ingress
+  namespace: test-nginx
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+spec:
+  tls:
+  - hosts:
+    - ssl.smarts.uz
+    secretName: ssl.smarts.uz-tls   # Cert-manager avtomatik yaratadi
+  rules:
+  - host: ssl.smarts.uz
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: komol                # Sizning service nomingiz
+            port:
+              number: 3000             # Sizning service portingiz
