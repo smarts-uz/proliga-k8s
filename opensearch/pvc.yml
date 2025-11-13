@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: opensearch-data
+  namespace: opensearch-net
+spec:
+  storageClassName: longhorn    # Longhorn storage classdan foydalanamiz
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi

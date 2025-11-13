@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sync-service
+  namespace: opensearch-net
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sync-service
+  template:
+    metadata:
+      labels:
+        app: sync-service
+    spec:
+      containers:
+        - name: sync-service
+          image: mukhtarovich/opensearch-sync-service:latest
+          env:
+            - name: PGUSER
+              value: postgres
+            - name: PGPASSWORD
+              value: c21hcnRza29tb2x0ZWFt
+            - name: PGHOST
+              value: 192.168.3.56
+            - name: PGDATABASE
+              value: postgres
+            - name: PGPORT
+              value: "5444"
+            - name: OPENSEARCH_NODE
+              value: http://opensearch.opensearch-net.svc.cluster.local:9200
+          ports:
+            - containerPort: 8080
+      restartPolicy: Always

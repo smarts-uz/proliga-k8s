@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: opensearch
+  namespace: opensearch-net
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: opensearch
+  template:
+    metadata:
+      labels:
+        app: opensearch
+    spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+        - name: opensearch
+          image: mukhtarovich/opensearch-icu:1.3.9
+          ports:
+            - containerPort: 9200
+              name: http
+            - containerPort: 9600
+              name: metrics
+          env:
+            - name: discovery.type
+              value: single-node
+            - name: bootstrap.memory_lock
+              value: "true"
+            - name: OPENSEARCH_JAVA_OPTS
+              value: "-Xms512m -Xmx512m"
+            - name: plugins.security.disabled
+              value: "true"
+            - name: OPENSEARCH_INITIAL_ADMIN_PASSWORD
+              value: "G7!tQz@e9V#pLm2^Xs$kWf"
+          volumeMounts:
+            - name: opensearch-storage
+              mountPath: /usr/share/opensearch/data
+          securityContext:
+            capabilities:
+              add: ["IPC_LOCK"]
+      volumes:
+        - name: opensearch-storage
+          persistentVolumeClaim:
+            claimName: opensearch-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: opensearch
+  namespace: opensearch-net
+spec:
+  type: NodePort
+  ports:
+    - name: http
+      port: 9200
+      targetPort: 9200
+      nodePort: 30920
+    - name: metrics
+      port: 9600
+      targetPort: 9600
+      nodePort: 30960
+  selector:
+    app: opensearch
