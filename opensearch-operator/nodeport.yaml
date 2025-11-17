@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: opensearch-nodeport
+  namespace: test-opensearch
+spec:
+  type: NodePort
+  selector:
+    opster.io/opensearch-cluster: my-first-cluster
+  ports:
+    - name: rest
+      port: 9200          # Port inside the cluster
+      targetPort: 9200    # Port on the pod
+      nodePort: 30920     # Port exposed on the node (between 30000-32767)
+      protocol: TCP
