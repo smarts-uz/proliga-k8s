@@ -1,0 +1,44 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: admin-credentials-secret
+  namespace: opensearch
+type: Opaque
+stringData:
+  username: "admin"
+  password: "G7!tQz@e9V#pLm2^Xs$kWf"
+---
+apiVersion: opensearch.opster.io/v1
+kind: OpenSearchCluster
+metadata:
+  name: my-first-cluster
+  namespace: opensearch
+spec:
+  general:
+    serviceName: my-first-cluster
+    version: "3.3.2"
+  nodePools:
+    - component: nodes
+      replicas: 1
+      diskSize: "3Gi"
+      resources:
+        requests:
+          memory: "1Gi"
+          cpu: "200m"
+        limits:
+          memory: "1Gi"
+          cpu: "200m"
+      roles:
+        - cluster_manager
+        - data
+      env:
+        - name: OPENSEARCH_INITIAL_ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: admin-credentials-secret
+              key: password
+  security:
+    config:
+      adminCredentialsSecret:
+        name: admin-credentials-secret

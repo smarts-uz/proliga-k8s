@@ -1,0 +1,7 @@
+Add the helm repo:
+helm repo add opensearch-operator https://opensearch-project.github.io/opensearch-k8s-operator/
+Install the Operator: 
+helm install opensearch-operator opensearch-operator/opensearch-operator -n opensearch --create-namespace
+
+Apply the opensearch.yaml file to create the OpenSearch cluster:
+
