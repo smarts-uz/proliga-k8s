@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: opensearch-nodeport
-  namespace: test-opensearch
+  namespace: opensearch
 spec:
   type: NodePort
   selector:

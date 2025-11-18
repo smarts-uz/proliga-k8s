@@ -7,6 +7,8 @@ spec:
   general:
     serviceName: my-first-cluster
     version: "3.1.0"
+    pluginsList:
+      - analysis-icu
   nodePools:
     - component: nodes
       replicas: 1
